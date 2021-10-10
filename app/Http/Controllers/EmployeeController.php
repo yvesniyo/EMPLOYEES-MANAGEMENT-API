@@ -30,16 +30,19 @@ class EmployeeController extends Controller
             $request,
             [
                 "name" => "string|required",
-                "email" => "email|required|unique:employee,email",
-                "phone" => "phone|required|unique:employee,phone",
-                "national_id" => "national_id|required|unique:employee,national_id",
+                "email" => "email|required|unique:employees,email",
+                "phone" => "phone|required|unique:employees,phone",
+                "national_id" => "national_id|required|unique:employees,national_id",
                 "position" => [Rule::in(["MANAGER", "DEVELOPER", "DESIGNER", "TESTER", "DEVOPS"]), "required"],
                 "status" => [Rule::in(["ACTIVE", "INACTIVE"]), "required"],
                 "dob" => "date|required",
             ]
         );
 
-        $employeeDetails = $request->all();
+        $employeeDetails = $request->only([
+            "dob", "national_id", "phone",
+            "email", "name", "status", "position"
+        ]);
 
         if (!isOver18($employeeDetails["dob"])) {
             return Response::json([
@@ -92,9 +95,13 @@ class EmployeeController extends Controller
             ]
         );
 
-        $employeeDetails = $request->all();
+        $employeeDetails = $request->only([
+            "dob", "national_id", "phone",
+            "email", "name", "status", "position"
+        ]);
 
-        if (!isOver18($employeeDetails["dob"])) {
+
+        if ($employeeDetails["dob"] ?? false && !isOver18($employeeDetails["dob"])) {
             return Response::json([
                 "error" => "Employee Date of birth should be over 18",
                 "status" => 422,
@@ -111,10 +118,8 @@ class EmployeeController extends Controller
             ], 404);
         }
 
-        $employee->update($employeeDetails);
 
-
-        if ($employee) {
+        if ($employee->update($employeeDetails)) {
 
             log_activity(auth("api")->user(), "Updated an employee", $employee);
 
@@ -231,6 +236,8 @@ class EmployeeController extends Controller
     {
 
         $fails = $success = [];
+
+        return $request->allFiles();
 
         try {
             Excel::import(
