@@ -20,6 +20,8 @@ class Employee extends Model implements AuthenticatableContract, AuthorizableCon
 {
     use Authenticatable, Authorizable, HasFactory, CausesActivity, LogsActivity;
 
+
+    protected $table = "employees";
     /**
      * The attributes that are mass assignable.
      *
@@ -47,73 +49,73 @@ class Employee extends Model implements AuthenticatableContract, AuthorizableCon
     ];
 
 
-    /**
-     * The employee code
-     * @var string
-     * @OA\Property()
-     */
-    public string $code;
+    // /**
+    //  * The employee code
+    //  * @var string
+    //  * @OA\Property()
+    //  */
+    // public string $code;
 
-    /**
-     * The employee name
-     * @var string
-     * @OA\Property()
-     */
-    public string $name;
-
-
-    /**
-     * The employee email
-     * @var string
-     * @OA\Property()
-     */
-    public string $email;
-
-    /**
-     * The employee national_id
-     * @var string
-     * @OA\Property()
-     */
-    public string $national_id;
+    // /**
+    //  * The employee name
+    //  * @var string
+    //  * @OA\Property()
+    //  */
+    // public string $name;
 
 
-    /**
-     * The employee phone
-     * @var string
-     * @OA\Property()
-     */
-    public string $phone;
+    // /**
+    //  * The employee email
+    //  * @var string
+    //  * @OA\Property()
+    //  */
+    // public string $email;
+
+    // /**
+    //  * The employee national_id
+    //  * @var string
+    //  * @OA\Property()
+    //  */
+    // public string $national_id;
 
 
-    /**
-     * The employee date of birth
-     * @var date
-     * @OA\Property()
-     */
-    public string $dob;
+    // /**
+    //  * The employee phone
+    //  * @var string
+    //  * @OA\Property()
+    //  */
+    // public string $phone;
 
 
-    /**
-     * The employee status
-     * @var string
-     * @OA\Property()
-     */
-    public string $status;
-
-    /**
-     * The employee position
-     * @var string
-     * @OA\Property()
-     */
-    public string $position;
+    // /**
+    //  * The employee date of birth
+    //  * @var date
+    //  * @OA\Property()
+    //  */
+    // public string $dob;
 
 
-    /**
-     * The employee create date
-     * @var string
-     * @OA\Property()
-     */
-    public string $created_at;
+    // /**
+    //  * The employee status
+    //  * @var string
+    //  * @OA\Property()
+    //  */
+    // public string $status;
+
+    // /**
+    //  * The employee position
+    //  * @var string
+    //  * @OA\Property()
+    //  */
+    // public string $position;
+
+
+    // /**
+    //  * The employee create date
+    //  * @var string
+    //  * @OA\Property()
+    //  */
+    // public string $created_at;
 
 
     /**

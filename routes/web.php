@@ -29,17 +29,17 @@ $router->group(["prefix" => "/api/v1"], function () use ($router) {
     $router->group(["prefix" => "manager"], function () use ($router) {
 
         $router->group(["prefix" => "auth"], function () use ($router) {
-            $router->get("login", ["uses" => "AuthController@login"]);
+            $router->post("login", ["uses" => "AuthController@login"]);
             $router->post("signup", ["uses" => "AuthController@signup"]);
             $router->get("logout", ["uses" => "AuthController@logout"]);
             $router->get("me", ["uses" => "AuthController@me"]);
 
             $router->post("requestResetLink", ["uses" => "AuthController@sendResetLink"]);
-            $router->get("resetPassword/{reset_code}", ["uses" => "AuthController@resetPassword"]);
+            $router->post("resetPassword/{reset_code}", ["uses" => "AuthController@resetPassword"]);
         });
 
         $router->get("activities", ["uses" => "ActivityController@myActivities"]);
-        $router->get("profile/update", ["uses" => "ActivityController@myActivities"]);
+        $router->patch("profile/update", ["uses" => "ManagerProfileController@update"]);
     });
 
 
@@ -47,10 +47,10 @@ $router->group(["prefix" => "/api/v1"], function () use ($router) {
 
         $router->post("/store", ["uses" => "EmployeeController@store"]);
         $router->post("/import", ["uses" => "EmployeeController@import"]);
-        $router->patch("/{employee_code}/update", ["uses" => "EmployeeController@update"]);
-        $router->patch("/{employee_code}/suspend", ["uses" => "EmployeeController@suspend"]);
-        $router->patch("/{employee_code}/activate", ["uses" => "EmployeeController@activate"]);
-        $router->delete("/{employee_code}/delete", ["uses" => "EmployeeController@delete"]);
+        $router->patch("{employee_code}/update", ["uses" => "EmployeeController@update"]);
+        $router->patch("{employee_code}/suspend", ["uses" => "EmployeeController@suspend"]);
+        $router->patch("{employee_code}/activate", ["uses" => "EmployeeController@activate"]);
+        $router->delete("{employee_code}/delete", ["uses" => "EmployeeController@delete"]);
 
         $router->get("{employee_code}/activities", ["uses" => "ActivityController@index"]);
 

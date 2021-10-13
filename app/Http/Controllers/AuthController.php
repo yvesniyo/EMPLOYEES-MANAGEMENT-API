@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Jobs\SendResetLinkToManagerJob;
 use App\Models\Employee;
+use App\Services\CodeGenerator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;
 
 
@@ -20,7 +22,7 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:api', ['except' => ['login', 'sendResetLink', 'signup', 'resetPassword']]);
     }
 
 
@@ -91,16 +93,19 @@ class AuthController extends Controller
 
     public function signup(Request $request)
     {
+
         $this->validate(
             $request,
             [
                 "name" => "string|required",
-                "email" => "email|required|unique:employee,email",
-                "phone" => "phone|required|unique:employee,phone",
-                "national_id" => "national_id|required|unique:employee,national_id",
+                "email" => "email|required|unique:employees,email",
+                "phone" => "phone|required|unique:employees,phone",
+                "national_id" => "national_id|required|unique:employees,national_id",
                 "dob" => "date|required",
+                "password" => "string|min:6"
             ]
         );
+
 
         $employeeDetails = $request->all();
 
@@ -113,6 +118,13 @@ class AuthController extends Controller
 
         $employeeDetails["status"] = "ACTIVE";
         $employeeDetails["position"] = "MANAGER";
+        $employeeDetails["password"] = Hash::make($request->password);
+
+        $employeeDetails["code"] = CodeGenerator::EMPLOYEE();
+
+        while (Employee::whereCode($employeeDetails["code"])->exists()) {
+            $employeeDetails["code"] = CodeGenerator::EMPLOYEE();
+        }
 
         /** @var \App\Models\Employee */
         $employee = Employee::create($employeeDetails);
@@ -134,30 +146,41 @@ class AuthController extends Controller
 
 
 
-    public function resetPassword(Request $request)
+    public function resetPassword(Request $request, string $reset_code)
     {
         $this->validate($request, [
-            "reset_code" => "string|required",
             "password" => "string|min:6",
         ]);
 
+
+
         $employee = Employee::manager()
-            ->whereResetCode($request->reset_code)
-            ->whereDateTime("reset_code_expires_in", "<", Carbon::now())
+            ->whereResetCode($reset_code)
             ->first();
 
         if (!$employee) {
             abort(404, "Invalid reset code or it is expired, try requesting new reset link");
         }
 
+        $expires_in = Carbon::parse($employee->reset_code_expires_in);
+
+        if ($expires_in->lt(Carbon::now())) {
+            abort(404, "Invalid reset code or it is expired, try requesting new reset link");
+        }
+
 
         $employee->password = Hash::make($request->password);
+        $employee->reset_code = null;
+        $employee->reset_code_expires_in = null;
 
         if (!$employee->save()) {
             abort(500, "Unexpected error, try again later");
         }
 
-        return response("success");
+        return Response::json([
+            "message" => "Password reset success",
+            "status" => 200,
+        ]);
     }
 
 
@@ -169,8 +192,7 @@ class AuthController extends Controller
 
         /** @var \App\Models\Employee */
         $employee = Employee::manager()
-            ->whereResetCode($request->reset_code)
-
+            ->whereEmail($request->email)
             ->first();
 
         if (!$employee) {
@@ -210,16 +232,15 @@ class AuthController extends Controller
     {
         $user = $this->EmployeeGuard()->user();
 
-        if (!$this->EmployeeGuard()->logout()) {
-            return response("Unexpected error", 500);
-        }
+        $this->EmployeeGuard()->logout();
 
         log_activity($user, "Logout");
 
-        return response("Logout success");
+        return Response::json([
+            "message" => "Logout success",
+            "status" => 200,
+        ], 200);
     }
-
-
 
 
     public function EmployeeGuard()

@@ -5,9 +5,10 @@ use Carbon\Carbon;
 
 function isOver18(string $date_of_birth)
 {
+
     $dob = Carbon::parse($date_of_birth);
     $years = Carbon::now()->year - $dob->year;
-    return ($years < 18);
+    return ($years > 18);
 }
 
 

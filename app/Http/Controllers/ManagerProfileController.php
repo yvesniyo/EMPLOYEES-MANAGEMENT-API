@@ -16,7 +16,7 @@ class ManagerProfileController extends Controller
      */
     public function __construct()
     {
-        $this->middleware("api:auth");
+        $this->middleware("auth:api");
     }
 
 
@@ -30,15 +30,16 @@ class ManagerProfileController extends Controller
                 "email" => "email",
                 "phone" => "phone",
                 "national_id" => "national_id",
-                "position" => Rule::in(["MANAGER", "DEVELOPER", "DESIGNER", "TESTER", "DEVOPS"]),
-                "status" => Rule::in(["ACTIVE", "INACTIVE"]),
                 "dob" => "date",
             ]
         );
 
-        $employeeDetails = $request->all();
+        $employeeDetails = $request->only(["dob", "national_id", "phone", "email", "name"]);
 
-        if (!isOver18($employeeDetails["dob"])) {
+        if (
+            $employeeDetails["dob"] ?? false &&
+            !isOver18($employeeDetails["dob"])
+        ) {
             return Response::json([
                 "error" => "Employee Date of birth should be over 18",
                 "status" => 422,
@@ -50,7 +51,6 @@ class ManagerProfileController extends Controller
 
 
         $employee->update($employeeDetails);
-
 
         if ($employee) {
 

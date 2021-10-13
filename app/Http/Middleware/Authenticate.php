@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
+use Illuminate\Support\Facades\Response;
 
 class Authenticate
 {
@@ -38,7 +39,10 @@ class Authenticate
     {
 
         if (!FacadesAuth::guard($guard)->check()) {
-            return response('Unauthorized.', 401);
+            return Response::json([
+                "error" => "Unauthorized.",
+                "status" => 401
+            ], 401);
         }
 
 
