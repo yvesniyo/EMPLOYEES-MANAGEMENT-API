@@ -22,6 +22,8 @@ visit here for documentation [documentation link](https://documenter.getpostman.
 
 Note: Make sure you have database engine.
 
+And while testing the Import feature you can use the file in `.\public\employee.xlsx`
+
 ## What was done
 
 ### Employees Management:
