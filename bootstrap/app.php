@@ -1,5 +1,6 @@
 <?php
 
+use Maatwebsite\Excel\ExcelServiceProvider;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -104,7 +105,7 @@ $app->register(Illuminate\Mail\MailServiceProvider::class);
 
 $app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
 
-
+$app->register(ExcelServiceProvider::class);
 
 $app->configure('mail');
 

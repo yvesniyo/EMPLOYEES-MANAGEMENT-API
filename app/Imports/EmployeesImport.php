@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Events\EmployeeCreatedEvent;
 use App\Models\Employee;
 use App\Exceptions\CustomExcelImportException;
 use App\Jobs\SendWelcomeToNewEmployeeJob;
@@ -69,10 +70,6 @@ class EmployeesImport implements
 
         $code =  CodeGenerator::EMPLOYEE();
 
-        while (Employee::whereCode($code)->exists()) {
-            $code =  CodeGenerator::EMPLOYEE();
-        }
-
         $employeeDetails = [
             "name" => $row["name"],
             "phone" => "+" . ((string) ((int) $row["phone"])),
@@ -87,7 +84,7 @@ class EmployeesImport implements
 
         if (!isOver18($employeeDetails["dob"])) {
             self::$all_failures[] =  new Failure(($rowIndex), "dob", [
-                "Employee Date of birth should be over 18, Employee:" . $employeeDetails["name"]
+                "Employee should be over 18, EmployeeName: " . $employeeDetails["name"] . ", dob: " . $employeeDetails["dob"]
             ], $row);
             return;
         }
@@ -124,7 +121,7 @@ class EmployeesImport implements
             return;
         }
 
-        dispatch(new SendWelcomeToNewEmployeeJob($employee));
+        event(new EmployeeCreatedEvent($employee));
 
         self::$all_successes[] = $row;
     }

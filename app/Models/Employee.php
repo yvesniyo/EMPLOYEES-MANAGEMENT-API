@@ -39,6 +39,11 @@ class Employee extends Model implements AuthenticatableContract, AuthorizableCon
         'password',
     ];
 
+
+    protected $casts = [
+        "reset_code_expires_in" => "datetime",
+    ];
+
     /**
      * The attributes excluded from the model's JSON form.
      *
@@ -146,5 +151,22 @@ class Employee extends Model implements AuthenticatableContract, AuthorizableCon
     public function scopeManager($query)
     {
         $query->where("position", "MANAGER");
+    }
+
+
+    public function scopeActive($query)
+    {
+        $query->where("status", "ACTIVE");
+    }
+
+    public function scopeCode($query, $code)
+    {
+        $query->whereCode($code);
+    }
+
+
+    public function isManager()
+    {
+        return $this->position == "MANAGER";
     }
 }

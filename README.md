@@ -14,8 +14,11 @@ visit here for documentation [documentation link](https://documenter.getpostman.
 4. In `.env` change `APP_NAME` to company name
 5. In `.env` set `APP_KEY` to any 32 characters secrete key
 6. In `.env` set `DB_DATABASE`,`DB_USERNAME`,`DB_PASSWORD`
-7. run `php artisan jwt:secret`
-8. run `php -S localhost:8088 -t public`
+7. run `php artisan migrate` , if you want to seed datas also run `php artisan db:seed`
+8. run `php artisan jwt:secret`
+9. run `php -S localhost:8088 -t public`
+10. run `php artisan queue:listen` in different terminal, if you want to send emails.
+11. emails needs you to setup .env `MAIL_USERNAME` and `MAIL_PASSWORD`, you can use gmail account but make sure it is enabled for unsecure logins.
 
 Note: Make sure you have database engine.
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmployeeCreatedEvent;
 use App\Exceptions\CustomExcelImportException;
 use App\Imports\EmployeesImport;
 use App\Models\Employee;
@@ -54,10 +55,6 @@ class EmployeeController extends Controller
 
         $employeeDetails["code"] = CodeGenerator::EMPLOYEE();
 
-        while (Employee::whereCode($employeeDetails["code"])->exists()) {
-            $employeeDetails["code"] = CodeGenerator::EMPLOYEE();
-        }
-
 
         /** @var \App\Models\Employee */
         $employee = Employee::create($employeeDetails);
@@ -65,6 +62,8 @@ class EmployeeController extends Controller
 
         if ($employee) {
             log_activity(auth("api")->user(), "Created an employee", $employee);
+
+            event(new EmployeeCreatedEvent($employee));
 
             return Response::json([
                 "message" => $employee->name . " successfuly created",
@@ -237,14 +236,10 @@ class EmployeeController extends Controller
 
         $fails = $success = [];
 
-        return $request->allFiles();
-
         try {
             Excel::import(
                 new EmployeesImport,
-                $request
-                    ->file('file')
-                    ->store('temp')
+                $_FILES["file"]["tmp_name"] //$request>file('file')->store('temp')
             );
         } catch (CustomExcelImportException $th) {
             $fails = $th->failures();
@@ -254,13 +249,15 @@ class EmployeeController extends Controller
 
         if (count($fails) > 0) {
             return Response::json([
-                "errors" => $fails,
+                "failed_rows" => $fails,
+                "succeded_rows" => $success,
                 "status" => 422,
             ], 422);
         }
 
         return Response::json([
             "message" => "successfuly imported " . count($success) . " Employeed",
+            "succeded_rows" => $success,
             "status" => 200,
         ], 200);
     }

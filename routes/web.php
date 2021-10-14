@@ -2,6 +2,12 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
+use App\Events\EmployeeCreatedEvent;
+use App\Mail\ManagerResetCodeMail;
+use App\Mail\WelcomeEmployeeMail;
+use App\Models\Employee;
+use App\Services\CodeGenerator;
+use Illuminate\Support\Facades\Mail;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +32,7 @@ $router->group(["prefix" => "/api/v1"], function () use ($router) {
     });
 
 
+
     $router->group(["prefix" => "manager"], function () use ($router) {
 
         $router->group(["prefix" => "auth"], function () use ($router) {
@@ -35,11 +42,16 @@ $router->group(["prefix" => "/api/v1"], function () use ($router) {
             $router->get("me", ["uses" => "AuthController@me"]);
 
             $router->post("requestResetLink", ["uses" => "AuthController@sendResetLink"]);
-            $router->post("resetPassword/{reset_code}", ["uses" => "AuthController@resetPassword"]);
+            $router->post("resetPassword/{reset_code}", ["as" => "manager.reset_password", "uses" => "AuthController@resetPassword"]);
         });
 
         $router->get("activities", ["uses" => "ActivityController@myActivities"]);
         $router->patch("profile/update", ["uses" => "ManagerProfileController@update"]);
+
+        $router->get("/reset-link/{reset_code}", [
+            "as" => "manager.reset_link",
+            "uses" => "AuthController@viewResetPage",
+        ]);
     });
 
 

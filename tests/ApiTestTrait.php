@@ -18,7 +18,12 @@ trait ApiTestTrait
     public function assertApiSuccess()
     {
         $this->response->assertStatus(200);
-        $this->response->assertJson(['success' => true]);
+    }
+
+
+    public function assertApiError()
+    {
+        $this->response->assertStatus(200);
     }
 
     public function assertModelData(array $actualData, array $expectedData)

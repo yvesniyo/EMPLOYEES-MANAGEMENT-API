@@ -33,10 +33,10 @@ class CustomValidationServiceProvider extends ServiceProvider
                 return false;
             }
             $year = (int) substr($value, 1, 4);
-            if ((Carbon::now()->year - $year) >= 100) {
-                return false;
+            if ((Carbon::now()->year - $year) >= 18) {
+                return true;
             }
-            return true;
+            return false;
         });
         Validator::replacer("national_id", function ($message, $rule, $parameters) {
             return str_replace($message, "Invalid National ID", $message);

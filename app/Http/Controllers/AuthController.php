@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmployeeCreatedEvent;
 use App\Jobs\SendResetLinkToManagerJob;
 use App\Models\Employee;
 use App\Services\CodeGenerator;
@@ -22,7 +23,7 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'sendResetLink', 'signup', 'resetPassword']]);
+        $this->middleware('auth:api', ['except' => ['login', 'sendResetLink', 'signup', 'resetPassword', 'viewResetPage']]);
     }
 
 
@@ -122,15 +123,12 @@ class AuthController extends Controller
 
         $employeeDetails["code"] = CodeGenerator::EMPLOYEE();
 
-        while (Employee::whereCode($employeeDetails["code"])->exists()) {
-            $employeeDetails["code"] = CodeGenerator::EMPLOYEE();
-        }
-
         /** @var \App\Models\Employee */
         $employee = Employee::create($employeeDetails);
 
         if ($employee) {
             log_activity($employee, "Signed Up");
+            event(new EmployeeCreatedEvent($employee));
 
             return Response::json([
                 "message" => $employee->name . " successfuly created",
@@ -149,8 +147,10 @@ class AuthController extends Controller
     public function resetPassword(Request $request, string $reset_code)
     {
         $this->validate($request, [
-            "password" => "string|min:6",
+            "password" => "string|min:6|required",
+            "confirm_password" => "string|same:password"
         ]);
+
 
 
 
@@ -242,6 +242,26 @@ class AuthController extends Controller
         ], 200);
     }
 
+
+
+    public function viewResetPage(Request $request, string $reset_code)
+    {
+        $employee = Employee::manager()
+            ->whereResetCode($reset_code)
+            ->first();
+
+        if (!$employee) {
+            abort(404, "Invalid reset code or it is expired, try requesting new reset link");
+        }
+
+        $expires_in = Carbon::parse($employee->reset_code_expires_in);
+
+        if ($expires_in->lt(Carbon::now())) {
+            abort(404, "Invalid reset code or it is expired, try requesting new reset link");
+        }
+
+        return view("pages.reset_page")->with("reset_code", $reset_code);
+    }
 
     public function EmployeeGuard()
     {
