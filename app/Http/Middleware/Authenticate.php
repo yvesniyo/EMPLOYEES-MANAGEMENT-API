@@ -46,6 +46,16 @@ class Authenticate
         }
 
 
+        /** @var \App\Models\Employee */
+        $user = FacadesAuth::guard($guard)->user();
+        if (!$user->isActive()) {
+            return Response::json([
+                "error" => "This account was suspended.",
+                "status" => 403
+            ], 403);
+        }
+
+
         return $next($request);
     }
 }

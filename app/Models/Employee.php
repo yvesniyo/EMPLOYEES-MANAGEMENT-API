@@ -21,7 +21,6 @@ class Employee extends Model implements AuthenticatableContract, AuthorizableCon
     use Authenticatable, Authorizable, HasFactory, CausesActivity, LogsActivity;
 
 
-    protected $table = "employees";
     /**
      * The attributes that are mass assignable.
      *
@@ -168,5 +167,11 @@ class Employee extends Model implements AuthenticatableContract, AuthorizableCon
     public function isManager()
     {
         return $this->position == "MANAGER";
+    }
+
+
+    public function isActive()
+    {
+        return $this->status == "ACTIVE";
     }
 }

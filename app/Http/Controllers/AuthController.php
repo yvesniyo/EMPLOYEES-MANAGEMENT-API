@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Hash;
 
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;
 
 
@@ -39,6 +38,7 @@ class AuthController extends Controller
         );
 
 
+        /** @var \App\Models\Employee */
         $manager = Employee::manager()
             ->whereEmail($request->email)
             ->first();
@@ -57,7 +57,17 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $token = $this->EmployeeGuard()->login($manager);
+        if (!$manager->isActive()) {
+            return Response::json([
+                "message" => "This account has been suspended!",
+                "status" => 403,
+            ], 403);
+        }
+
+
+
+        $token = $this->managerGuard()
+            ->login($manager);
 
         if ($token) {
             log_activity($manager, "Logged In");
@@ -66,7 +76,7 @@ class AuthController extends Controller
                 "data" => [
                     'access_token' => $token,
                     'token_type' => 'bearer',
-                    'expires_in' => $this->EmployeeGuard()->factory()->getTTL() * 60
+                    'expires_in' => $this->managerGuard()->factory()->getTTL() * 60
                 ],
                 "status" => 200,
             ], 200);
@@ -81,7 +91,7 @@ class AuthController extends Controller
 
     public function me()
     {
-        $user = $this->EmployeeGuard()->user();
+        $user = $this->managerGuard()->user();
 
         return Response::json([
             "message" => "success",
@@ -230,9 +240,9 @@ class AuthController extends Controller
 
     public function logout()
     {
-        $user = $this->EmployeeGuard()->user();
+        $user = $this->managerGuard()->user();
 
-        $this->EmployeeGuard()->logout();
+        $this->managerGuard()->logout();
 
         log_activity($user, "Logout");
 
@@ -263,7 +273,12 @@ class AuthController extends Controller
         return view("pages.reset_page")->with("reset_code", $reset_code);
     }
 
-    public function EmployeeGuard()
+    /**
+     * Get auth guard for manager
+     *
+     * @return Illuminate\Support\Facades\Auth
+     */
+    public function managerGuard()
     {
         return Auth::guard("api");
     }
