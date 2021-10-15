@@ -3,11 +3,15 @@
 /** @var \Laravel\Lumen\Routing\Router $router */
 
 use App\Events\EmployeeCreatedEvent;
+use App\Exports\EmployeesExport;
 use App\Mail\ManagerResetCodeMail;
 use App\Mail\WelcomeEmployeeMail;
 use App\Models\Employee;
 use App\Services\CodeGenerator;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Maatwebsite\Excel\Facades\Excel;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +24,12 @@ use Illuminate\Support\Facades\Mail;
 |
 */
 
-$router->get('/', function () use ($router) {
+$router->get('/', function (Request $request) use ($router) {
+
+
+
+
+
     return config("app.name") . " - API";
 });
 
@@ -36,12 +45,12 @@ $router->group(["prefix" => "/api/v1"], function () use ($router) {
     $router->group(["prefix" => "manager"], function () use ($router) {
 
         $router->group(["prefix" => "auth"], function () use ($router) {
-            $router->post("login", ["uses" => "AuthController@login"]);
-            $router->post("signup", ["uses" => "AuthController@signup"]);
+            $router->post("login", ["as" => "manager.login", "uses" => "AuthController@login"]);
+            $router->post("signup", ["as" => "manager.signup", "uses" => "AuthController@signup"]);
             $router->get("logout", ["uses" => "AuthController@logout"]);
-            $router->get("me", ["uses" => "AuthController@me"]);
+            $router->get("me", ["as" => "manager.me", "uses" => "AuthController@me"]);
 
-            $router->post("requestResetLink", ["uses" => "AuthController@sendResetLink"]);
+            $router->post("requestResetLink", ["as" => "manager.requestResetLink", "uses" => "AuthController@sendResetLink"]);
             $router->post("resetPassword/{reset_code}", ["as" => "manager.reset_password", "uses" => "AuthController@resetPassword"]);
         });
 
@@ -58,7 +67,8 @@ $router->group(["prefix" => "/api/v1"], function () use ($router) {
     $router->group(["prefix" => "employee", "middleware" => "auth:api"], function () use ($router) {
 
         $router->post("/store", ["uses" => "EmployeeController@store"]);
-        $router->post("/import", ["uses" => "EmployeeController@import"]);
+        $router->post("/import", ["uses" => "ExportImportController@importEmployees"]);
+        $router->get("/export", ["uses" => "ExportImportController@exportEmployees"]);
         $router->patch("{employee_code}/update", ["uses" => "EmployeeController@update"]);
         $router->patch("{employee_code}/suspend", ["uses" => "EmployeeController@suspend"]);
         $router->patch("{employee_code}/activate", ["uses" => "EmployeeController@activate"]);

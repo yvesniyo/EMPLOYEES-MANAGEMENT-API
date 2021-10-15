@@ -50,6 +50,8 @@ class Employee extends Model implements AuthenticatableContract, AuthorizableCon
      */
     protected $hidden = [
         'password',
+        "reset_code",
+        "reset_code_expires_in"
     ];
 
 
@@ -156,6 +158,11 @@ class Employee extends Model implements AuthenticatableContract, AuthorizableCon
     public function scopeActive($query)
     {
         $query->where("status", "ACTIVE");
+    }
+
+    public function scopeSuspended($query)
+    {
+        $query->where("status", "<>", "ACTIVE");
     }
 
     public function scopeCode($query, $code)

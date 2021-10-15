@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Exceptions\CustomExcelImportException;
 use App\Jobs\SendWelcomeToNewEmployeeJob;
 use App\Services\CodeGenerator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Concerns\Importable;
@@ -120,6 +121,8 @@ class EmployeesImport implements
             ], $row);
             return;
         }
+
+        log_activity(Auth::guard("api")->user(), " Imported employee", $employee);
 
         event(new EmployeeCreatedEvent($employee));
 

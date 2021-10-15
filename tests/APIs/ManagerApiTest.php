@@ -3,6 +3,7 @@
 namespace APIs;
 
 use ApiTestTrait;
+use App\Events\EmployeeCreatedEvent;
 use App\Models\Employee;
 use Carbon\Carbon;
 use TestCase;
@@ -12,62 +13,21 @@ use Laravel\Lumen\Testing\WithoutMiddleware;
 
 class ManagerApiTest extends TestCase
 {
-    use ApiTestTrait, WithoutMiddleware, DatabaseTransactions;
-
-
-    /**
-     * @test
-     */
-    public function test_signup_manager()
-    {
-        $employee = Employee::factory()->make()->toArray();
-
-        $employee["dob"] = Carbon::now()
-            ->subYears(mt_rand(18, 30))
-            ->format("Y-m-d");
-
-        $this->resp = $this->json(
-            'POST',
-            '/api/v1/manager/auth/signup',
-            $employee
-        )->seeJson([
-            "message" => $employee["name"] . " successfuly created",
-            "status" => 200,
-        ]);
-    }
-
-
-
-    /**
-     * @test
-     */
-    public function test_signup_under_age_manager()
-    {
-        $employee = Employee::factory()->make()->toArray();
-
-        $employee["dob"] = Carbon::now()->subYears(15)->format("Y-m-d");
-
-        $this->resp = $this->json(
-            'POST',
-            '/api/v1/manager/auth/signup',
-            $employee
-        )->seeJson([
-            "error" => "Employee Date of birth should be over 18",
-            "status" => 422,
-        ]);
-    }
-
+    use  WithoutMiddleware, DatabaseTransactions;
 
     /**
      * @test
      */
     public function test_create_employee()
     {
-        $employee = Employee::factory()->make()->toArray();
+        $this->expectsEvents(EmployeeCreatedEvent::class);
 
-        $employee["dob"] = Carbon::now()
-            ->subYears(mt_rand(18, 30))
-            ->format("Y-m-d");
+        $employee = Employee::factory()->make([
+            "dob" => Carbon::now()
+                ->subYears(mt_rand(18, 30))
+                ->format("Y-m-d")
+        ])->toArray();
+
 
         $manager = Employee::manager()->active()->first();
 

@@ -228,37 +228,4 @@ class EmployeeController extends Controller
             "status" => 500,
         ], 500);
     }
-
-
-
-    public function import(Request $request)
-    {
-
-        $fails = $success = [];
-
-        try {
-            Excel::import(
-                new EmployeesImport,
-                $_FILES["file"]["tmp_name"] //$request>file('file')->store('temp')
-            );
-        } catch (CustomExcelImportException $th) {
-            $fails = $th->failures();
-            $success = $th->successes();
-        }
-
-
-        if (count($fails) > 0) {
-            return Response::json([
-                "failed_rows" => $fails,
-                "succeded_rows" => $success,
-                "status" => 422,
-            ], 422);
-        }
-
-        return Response::json([
-            "message" => "successfuly imported " . count($success) . " Employeed",
-            "succeded_rows" => $success,
-            "status" => 200,
-        ], 200);
-    }
 }
